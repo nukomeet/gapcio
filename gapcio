@@ -1,0 +1,68 @@
+#!/bin/sh
+# Gapcio is simple SSH keys management tool that use GitHub keys
+
+## Usage: gapcio <command> [args]
+##
+## Commands:
+##     help
+##       Show this message and exits
+##     get <username>
+##       Fetch and display public keys for given user
+##     add <username> [authorized_keys_path]
+##       Add public keys of given user to `authorized_keys_path` (by default
+##       `~/.ssh/authorized_keys)
+##     delete <username> [authorized_keys_path]
+##       Delete all public keys of given user from `authorized_keys_path`
+##       (by default `~/.ssh/authorized_keys)
+
+VERSION="0.0.1"
+
+command="$1"
+shift 1
+
+gp_help() {
+  grep '^##' "$0" | cut -c 4-
+}
+
+gp_get() {
+  username="$1"
+  if [ -z "$username" ]; then
+    echo "User name required" 1>&2
+    exit 1
+  fi
+
+  curl -sL "https://github.com/${username}.keys"
+}
+
+gp_add() {
+  username="$1"
+  auth_path="${2:-$HOME/.ssh/authorized_keys}"
+
+  keys="$(gp_get "$username" | sed "s/$/ $username/")"
+  echo "$keys" >> "$auth_path"
+}
+
+gp_delete() {
+  username="$1"
+  auth_path="${2:-$HOME/.ssh/authorized_keys}"
+
+  cp "$auth_path" "${auth_path}.old"
+  for key in $(gp_get "$username" | awk '{ print $2 }'); do
+    sed -i "\,${key},d" "$auth_path" && echo "Deleted key: '$key'"
+  done
+}
+
+case "$command" in
+  '--help' | '-h') gp_help;;
+  '--version' | '-v') echo "$VERSION";;
+  *)
+    command_func=$(command -v "gp_$command")
+    if [ ! -z "$command_func" ]; then
+      "$command_func" "$@"
+    else
+      echo "Unknown command $command"
+      echo
+      gp_help
+      exit 1
+    fi
+esac
