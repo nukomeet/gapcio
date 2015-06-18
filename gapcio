@@ -52,6 +52,13 @@ gp_delete() {
   done
 }
 
+gp_upload() {
+  username="$1"
+  addr="$2"
+
+  gp_get "$username" | ssh "$addr" 'cat >> $HOME/.ssh/known_hosts'
+}
+
 case "$command" in
   '--help' | '-h') gp_help;;
   '--version' | '-v') echo "$VERSION";;
