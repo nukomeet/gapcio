@@ -31,7 +31,7 @@ gp_get() {
     exit 1
   fi
 
-  curl -sL "https://github.com/${username}.keys"
+  echo $(curl -sL "https://github.com/${username}.keys")
 }
 
 gp_add() {
