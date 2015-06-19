@@ -31,7 +31,7 @@ gp_get() {
     exit 1
   fi
 
-  curl -sL "https://github.com/${username}.keys"
+  echo $(curl -sL "https://github.com/${username}.keys")
 }
 
 gp_add() {
@@ -50,6 +50,13 @@ gp_delete() {
   for key in $(gp_get "$username" | awk '{ print $2 }'); do
     sed -i "\,${key},d" "$auth_path" && echo "Deleted key: '$key'"
   done
+}
+
+gp_upload() {
+  username="$1"
+  addr="$2"
+
+  gp_get "$username" | ssh "$addr" 'cat >> $HOME/.ssh/authorized_keys'
 }
 
 case "$command" in
