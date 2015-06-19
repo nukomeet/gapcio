@@ -56,7 +56,7 @@ gp_upload() {
   username="$1"
   addr="$2"
 
-  gp_get "$username" | ssh "$addr" 'cat >> $HOME/.ssh/known_hosts'
+  gp_get "$username" | ssh "$addr" 'cat >> $HOME/.ssh/authorized_keys'
 }
 
 case "$command" in
